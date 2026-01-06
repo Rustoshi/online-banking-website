@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import { successResponse, unauthorizedResponse, notFoundResponse, errorResponse, handleError } from '@/lib/apiResponse';
 import { authenticateAdmin } from '@/lib/auth';
 import { User, Transaction } from '@/models';
+import { TransactionStatus } from '@/types';
 
 // POST /api/admin/users/[id]/generate-transaction - Generate a transaction for user
 export async function POST(
@@ -46,34 +47,47 @@ export async function POST(
       return notFoundResponse('User not found');
     }
 
-    // Create transaction record
-    const transaction = await Transaction.create({
-      user: user._id,
-      type: type.toLowerCase(),
-      amount: parseFloat(amount),
-      status: status || 'completed',
-      description: description || `${type} transaction`,
-      senderName: senderName || user.name,
-      senderAccount: senderAccount || user.accountNumber,
-      senderBank: senderBank || '',
-      receiverName: receiverName || '',
-      receiverAccount: receiverAccount || '',
-      receiverBank: receiverBank || '',
-      bankAddress: bankAddress || '',
-      createdAt: date ? new Date(date) : new Date(),
-    });
+    const parsedAmount = parseFloat(amount);
+    const balanceBefore = user.balance;
+    let balanceAfter = balanceBefore;
 
-    // Optionally update user balance based on transaction type
-    if (status === 'completed') {
+    // Calculate balance after based on transaction type
+    const transactionStatus = status || TransactionStatus.COMPLETED;
+    if (transactionStatus === TransactionStatus.COMPLETED || transactionStatus === 'completed') {
       if (type.toLowerCase() === 'credit' || type.toLowerCase() === 'deposit') {
-        user.balance += parseFloat(amount);
+        balanceAfter = balanceBefore + parsedAmount;
+        user.balance = balanceAfter;
         await user.save();
       } else if (type.toLowerCase() === 'debit' || type.toLowerCase() === 'withdrawal') {
-        user.balance -= parseFloat(amount);
-        if (user.balance < 0) user.balance = 0;
+        balanceAfter = Math.max(0, balanceBefore - parsedAmount);
+        user.balance = balanceAfter;
         await user.save();
       }
     }
+
+    // Create transaction record with metadata for extra fields
+    const transaction = await Transaction.create({
+      user: user._id,
+      type: type.toLowerCase(),
+      amount: parsedAmount,
+      balanceBefore,
+      balanceAfter,
+      currency: user.currency || 'USD',
+      status: transactionStatus,
+      description: description || `${type} transaction`,
+      metadata: {
+        senderName: senderName || user.name,
+        senderAccount: senderAccount || user.accountNumber,
+        senderBank: senderBank || '',
+        receiverName: receiverName || '',
+        receiverAccount: receiverAccount || '',
+        receiverBank: receiverBank || '',
+        bankAddress: bankAddress || '',
+        generatedByAdmin: true,
+        adminId: admin._id,
+      },
+      createdAt: date ? new Date(date) : new Date(),
+    });
 
     // TODO: Send notification to user if notifyUser is true
     if (notifyUser) {
