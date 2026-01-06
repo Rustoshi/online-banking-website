@@ -88,10 +88,7 @@ export async function POST(request: NextRequest) {
       type: NotificationType.INFO,
       title: 'Support Ticket Created',
       message: `Your support ticket #${ticket.ticketNumber} has been submitted. Our team will respond within 24 hours.`,
-      data: {
-        ticketId: ticket._id,
-        ticketNumber: ticket.ticketNumber,
-      },
+      link: `/dashboard/support/${ticket._id}`,
     });
 
     return successResponse(ticket, 'Support ticket submitted successfully');
