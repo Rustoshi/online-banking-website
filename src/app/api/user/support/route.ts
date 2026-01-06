@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     // Create notification for user
     await Notification.create({
       user: user._id,
-      type: NotificationType.SYSTEM,
+      type: NotificationType.INFO,
       title: 'Support Ticket Created',
       message: `Your support ticket #${ticket.ticketNumber} has been submitted. Our team will respond within 24 hours.`,
       data: {
