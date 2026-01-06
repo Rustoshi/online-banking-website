@@ -17,6 +17,12 @@ interface User {
   balance?: number;
   bitcoinBalance?: number;
   currency?: string;
+  phone?: string;
+  country?: string;
+  address?: string;
+  city?: string;
+  zipCode?: string;
+  dateOfBirth?: string;
 }
 
 interface AuthContextType {
