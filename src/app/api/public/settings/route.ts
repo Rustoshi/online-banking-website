@@ -16,7 +16,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: {
-        siteName: settings.app_siteName || 'Premiumbyte',
+        siteName: settings.app_siteName || '',
         siteEmail: settings.app_siteEmail || '',
         sitePhone: settings.app_sitePhone || '',
         siteAddress: settings.app_siteAddress || '',

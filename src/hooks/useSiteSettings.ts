@@ -12,7 +12,7 @@ export interface SiteSettings {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  siteName: 'Premiumbyte',
+  siteName: '',
   siteEmail: '',
   sitePhone: '',
   siteAddress: '',
