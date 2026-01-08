@@ -76,14 +76,14 @@ export async function POST(request: NextRequest) {
 
       case 'otp':
         // Verify OTP from transfer metadata
-        const storedOtp = transfer.metadata?.otp;
-        const otpExpiry = transfer.metadata?.otpExpiry;
+        const storedOtp = transfer.metadata?.otp as string | undefined;
+        const otpExpiry = transfer.metadata?.otpExpiry as string | Date | undefined;
         
         if (!storedOtp || !otpExpiry) {
           return errorResponse('OTP not found. Please request a new OTP.', 400);
         }
         
-        if (new Date() > new Date(otpExpiry)) {
+        if (new Date() > new Date(otpExpiry as string | Date)) {
           return errorResponse('OTP has expired. Please request a new OTP.', 400);
         }
         

@@ -963,8 +963,25 @@ export default function InternationalTransferPage() {
     );
   };
 
-  // Check if account is active
+  // Check if account is active or dormant
   const userStatus = user?.status || 'active';
+  if (userStatus === 'dormant') {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="rounded-xl p-8 text-center" style={{ backgroundColor: 'rgb(31 41 55)' }}>
+          <div className="mx-auto w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4">
+            <AlertCircle className="h-8 w-8 text-amber-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Account Dormant</h2>
+          <p className="text-gray-400 mb-6">Your account is currently dormant due to inactivity. Please contact our support team to reactivate your account before making international transfers.</p>
+          <Link href="/dashboard/support" className="inline-flex items-center px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">
+            Contact Support
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
   if (userStatus !== 'active') {
     return (
       <div className="max-w-2xl mx-auto">
