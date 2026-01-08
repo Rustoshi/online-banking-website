@@ -173,6 +173,20 @@ const UserSchema = new Schema<IUser>(
       type: String,
     },
 
+    // Pending OTP for transfer verification
+    pendingOtp: {
+      type: String,
+      select: false,
+    },
+    pendingOtpExpiry: {
+      type: Date,
+      select: false,
+    },
+    pendingOtpSentAt: {
+      type: Date,
+      select: false,
+    },
+
     // IRS Filing
     irsFilingId: {
       type: String,

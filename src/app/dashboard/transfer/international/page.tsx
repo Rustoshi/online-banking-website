@@ -100,6 +100,7 @@ export default function InternationalTransferPage() {
   const [transferId, setTransferId] = useState<string>('');
   const [verificationCode, setVerificationCode] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [pendingTransferData, setPendingTransferData] = useState<Record<string, unknown> | null>(null);
 
   // Form data
   const [amount, setAmount] = useState('');
@@ -305,39 +306,40 @@ export default function InternationalTransferPage() {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user/transfers', {
+      
+      // First verify PIN before proceeding to code verification
+      const pinResponse = await fetch('/api/user/verify-pin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          type: 'international',
-          accountNumber: selectedMethod === 'wire' ? accountNumber : walletAddress || paypalEmail || wiseEmail || cashAppTag || zelleEmail || venmoUsername || revolutEmail,
-          accountName: selectedMethod === 'wire' ? accountName : wiseFullName || cashAppFullName || zelleName || revolutFullName || 'N/A',
-          bankName: selectedMethod === 'wire' ? bankName : selectedMethod.toUpperCase(),
-          country: selectedMethod === 'wire' ? country : wiseCountry || 'International',
-          swiftCode: swiftCode || undefined,
-          routingNumber: iban || undefined,
-          amount: parseFloat(amount),
-          description: description || `${getMethodTitle()} - ${new Date().toLocaleDateString()}`,
-          pin,
-        }),
+        body: JSON.stringify({ pin }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        const apiError = data.error || data.message || 'Transfer failed';
-        const detailedError = getDetailedErrorMessage(apiError, response.status);
-        throw new Error(detailedError);
+      const pinData = await pinResponse.json();
+      if (!pinResponse.ok) {
+        throw new Error(pinData.error || 'Invalid PIN');
       }
 
-      // Store transfer ID and proceed to verification steps
-      setTransferId(data.data._id);
+      // Store transfer data for later submission after all codes verified
+      const transferData = {
+        type: 'international',
+        accountNumber: selectedMethod === 'wire' ? accountNumber : walletAddress || paypalEmail || wiseEmail || cashAppTag || zelleEmail || venmoUsername || revolutEmail,
+        accountName: selectedMethod === 'wire' ? accountName : wiseFullName || cashAppFullName || zelleName || revolutFullName || 'N/A',
+        bankName: selectedMethod === 'wire' ? bankName : selectedMethod.toUpperCase(),
+        country: selectedMethod === 'wire' ? country : wiseCountry || 'International',
+        swiftCode: swiftCode || undefined,
+        routingNumber: iban || undefined,
+        amount: parseFloat(amount),
+        description: description || `${getMethodTitle()} - ${new Date().toLocaleDateString()}`,
+        pin,
+      };
+
+      setPendingTransferData(transferData);
       setShowPreview(false);
       setCurrentStep('imf');
-      toast.success('Transfer initiated. Please complete verification to proceed.');
+      toast.success('PIN verified. Please complete verification codes to proceed.');
       
     } catch (err) {
       setShowPreview(false);
@@ -345,7 +347,7 @@ export default function InternationalTransferPage() {
       
       toast.error(
         <div>
-          <p className="font-semibold">Transfer Failed</p>
+          <p className="font-semibold">Verification Failed</p>
           <p className="text-sm mt-1">{errorMessage}</p>
         </div>,
         { duration: 8000 }
@@ -365,13 +367,15 @@ export default function InternationalTransferPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user/transfers/verify', {
+      
+      // Verify the code against user's stored codes
+      const response = await fetch('/api/user/transfers/verify-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ transferId, step, code: verificationCode }),
+        body: JSON.stringify({ step, code: verificationCode, transferId: transferId || undefined }),
       });
 
       const data = await response.json();
@@ -379,13 +383,35 @@ export default function InternationalTransferPage() {
 
       setVerificationCode('');
       
-      if (data.data.nextStep === 'cot') {
+      if (step === 'imf') {
         setCurrentStep('cot');
         toast.success('IMF Code verified successfully');
-      } else if (data.data.nextStep === 'otp') {
+      } else if (step === 'cot') {
         setCurrentStep('otp');
         toast.success('COT Code verified successfully');
-      } else if (data.data.nextStep === 'complete') {
+      } else if (step === 'otp') {
+        // All codes verified - now create the actual transfer
+        if (!pendingTransferData) {
+          throw new Error('Transfer data not found. Please start over.');
+        }
+        
+        const transferResponse = await fetch('/api/user/transfers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...pendingTransferData,
+            codesVerified: true,
+          }),
+        });
+
+        const transferData = await transferResponse.json();
+        if (!transferResponse.ok) {
+          throw new Error(transferData.error || 'Transfer failed');
+        }
+
         setCurrentStep('complete');
         toast.success('Transfer completed successfully!');
         setTimeout(() => router.push('/dashboard/transactions'), 3000);
@@ -402,13 +428,16 @@ export default function InternationalTransferPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
+      const recipientName = pendingTransferData?.accountName as string || 'Recipient';
+      const transferAmount = pendingTransferData?.amount as number || parseFloat(amount) || 0;
+      
       const response = await fetch('/api/user/transfers/send-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ transferId }),
+        body: JSON.stringify({ amount: transferAmount, recipientName }),
       });
 
       const data = await response.json();
@@ -953,6 +982,7 @@ export default function InternationalTransferPage() {
               setTransferId('');
               setVerificationCode('');
               setOtpSent(false);
+              setPendingTransferData(null);
             }}
             className="mt-4 inline-flex items-center text-gray-400 hover:text-white"
           >

@@ -291,6 +291,11 @@ export interface IUser {
   imfCode?: string;
   cotCode?: string;
   
+  // Pending OTP for transfer verification
+  pendingOtp?: string;
+  pendingOtpExpiry?: Date;
+  pendingOtpSentAt?: Date;
+  
   // IRS Filing
   irsFilingId?: string;
   
