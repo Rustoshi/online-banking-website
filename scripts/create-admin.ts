@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 // Load environment variables
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/online-banking';
+const MONGODB_URI = 'mongodb+srv://root:%40Newpass12@cluster0.sznor6a.mongodb.net/primecrest';
 
 // Admin Schema (must match src/models/Admin.ts)
 const AdminSchema = new mongoose.Schema({

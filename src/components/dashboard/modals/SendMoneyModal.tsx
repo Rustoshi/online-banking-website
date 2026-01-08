@@ -61,9 +61,9 @@ export default function SendMoneyModal({ isOpen, onClose }: SendMoneyModalProps)
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">Local Transfer</h4>
-                    <p className="text-sm text-gray-600">Easily send money locally</p>
-                    <p className="text-xs text-gray-500">0% Handling charges</p>
+                    <h4 className="font-medium" style={{ color: '#111827' }}>Local Transfer</h4>
+                    <p className="text-sm" style={{ color: '#4B5563' }}>Easily send money locally</p>
+                    <p className="text-xs" style={{ color: '#6B7280' }}>0% Handling charges</p>
                   </div>
                 </div>
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center group-hover:bg-cyan-100 transition-colors">
@@ -86,9 +86,9 @@ export default function SendMoneyModal({ isOpen, onClose }: SendMoneyModalProps)
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">International Wire Transfer</h4>
-                    <p className="text-sm text-gray-600">Wire transfer is executed under 72 hours</p>
-                    <p className="text-xs text-gray-500">IBAN & SWIFT code required</p>
+                    <h4 className="font-medium" style={{ color: '#111827' }}>International Wire Transfer</h4>
+                    <p className="text-sm" style={{ color: '#4B5563' }}>Wire transfer is executed under 72 hours</p>
+                    <p className="text-xs" style={{ color: '#6B7280' }}>IBAN & SWIFT code required</p>
                   </div>
                 </div>
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center group-hover:bg-cyan-100 transition-colors">
