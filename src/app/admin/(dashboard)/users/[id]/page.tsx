@@ -40,6 +40,7 @@ interface User {
   username?: string;
   accountNumber: string;
   balance: number;
+  bitcoinBalance?: number;
   accountType: string;
   status: string;
   kycStatus: string;
@@ -143,6 +144,8 @@ export default function UserDetailsPage() {
     zipCode: '',
     country: '',
     accountNumber: '',
+    balance: '',
+    bitcoinBalance: '',
     cotCode: '',
     taxCode: '',
     imfCode: '',
@@ -209,6 +212,8 @@ export default function UserDetailsPage() {
           zipCode: u.zipCode || '',
           country: u.country || '',
           accountNumber: u.accountNumber || '',
+          balance: u.balance?.toString() || '0',
+          bitcoinBalance: u.bitcoinBalance?.toString() || '0',
           cotCode: u.cotCode || '',
           taxCode: u.taxCode || '',
           imfCode: u.imfCode || '',
@@ -317,12 +322,17 @@ export default function UserDetailsPage() {
         },
         body: JSON.stringify(editForm),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.success) {
         setShowEditModal(false);
         fetchUser();
+        alert('User updated successfully!');
+      } else {
+        alert(data.error || data.message || 'Failed to update user');
       }
     } catch (error) {
       console.error('Edit failed:', error);
+      alert('Failed to update user. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -1106,6 +1116,20 @@ export default function UserDetailsPage() {
             label="Account Number"
             value={editForm.accountNumber}
             onChange={(e) => setEditForm({ ...editForm, accountNumber: e.target.value })}
+          />
+          <Input
+            label="Account Balance ($)"
+            type="number"
+            value={editForm.balance}
+            onChange={(e) => setEditForm({ ...editForm, balance: e.target.value })}
+            step="0.01"
+          />
+          <Input
+            label="Bitcoin Balance (BTC)"
+            type="number"
+            value={editForm.bitcoinBalance}
+            onChange={(e) => setEditForm({ ...editForm, bitcoinBalance: e.target.value })}
+            step="0.00000001"
           />
           <Input
             label="COT Code"

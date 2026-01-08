@@ -68,7 +68,7 @@ export async function PUT(
     // Update allowed fields (must match User model field names)
     const allowedFields = [
       'username', 'name', 'email', 'phone', 'country', 'address', 'city', 'zipCode',
-      'dateOfBirth', 'accountType', 'accountNumber', 'pin', 'status',
+      'dateOfBirth', 'accountType', 'accountNumber', 'balance', 'bitcoinBalance', 'pin', 'status',
       'dailyTransferLimit', 'dailyWithdrawalLimit', 'withdrawalFee',
       'cotCode', 'taxCode', 'imfCode', 'createdAt'
     ];
