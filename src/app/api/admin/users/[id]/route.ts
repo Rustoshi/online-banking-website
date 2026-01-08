@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db';
 import { successResponse, unauthorizedResponse, notFoundResponse, handleError } from '@/lib/apiResponse';
 import { authenticateAdmin } from '@/lib/auth';
 import { User, Transaction } from '@/models';
-import { sanitizeUser } from '@/lib/utils';
+import { sanitizeUser, hashPassword } from '@/lib/utils';
 
 export async function GET(
   request: NextRequest,
@@ -73,12 +73,18 @@ export async function PUT(
       'cotCode', 'taxCode', 'imfCode', 'createdAt'
     ];
 
-    allowedFields.forEach(field => {
+    for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (user as any)[field] = body[field];
+        // Hash PIN if it's being updated
+        if (field === 'pin' && body[field]) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (user as any)[field] = await hashPassword(body[field]);
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (user as any)[field] = body[field];
+        }
       }
-    });
+    }
 
     await user.save();
 
