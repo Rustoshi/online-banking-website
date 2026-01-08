@@ -112,6 +112,12 @@ const TransferSchema = new Schema<ITransfer>(
     processedAt: {
       type: Date,
     },
+    
+    // Metadata for verification codes, OTP, etc.
+    metadata: {
+      type: Schema.Types.Mixed,
+      default: {},
+    },
   },
   {
     timestamps: true,

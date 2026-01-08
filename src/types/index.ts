@@ -395,6 +395,9 @@ export interface ITransfer {
   requiresCotCode: boolean;
   codesVerified: boolean;
   
+  // Metadata for verification data (OTP, verification status, etc.)
+  metadata?: Record<string, unknown>;
+  
   processedBy?: Types.ObjectId;
   processedAt?: Date;
   createdAt: Date;

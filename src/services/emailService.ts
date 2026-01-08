@@ -621,6 +621,104 @@ export class EmailService {
       html,
     });
   }
+
+  /**
+   * Send Transfer OTP Email
+   */
+  static async sendTransferOtpEmail(
+    user: { email: string; name: string },
+    data: {
+      otp: string;
+      amount: number;
+      recipientName: string;
+      transferType: string;
+      expiryMinutes: number;
+    }
+  ): Promise<void> {
+    const settings = await getSiteSettings();
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Transfer Verification OTP</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fa;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td align="center" style="padding: 40px 0;">
+              <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); border-radius: 12px 12px 0 0;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">${settings.siteName}</h1>
+                    <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Transfer Verification</p>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <p style="margin: 0 0 20px; color: #1f2937; font-size: 16px;">Hello <strong>${user.name}</strong>,</p>
+                    
+                    <p style="margin: 0 0 20px; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                      You have initiated a ${data.transferType} transfer of <strong>$${data.amount.toFixed(2)}</strong> to <strong>${data.recipientName}</strong>.
+                    </p>
+                    
+                    <p style="margin: 0 0 20px; color: #4b5563; font-size: 15px; line-height: 1.6;">
+                      Please use the following One-Time Password (OTP) to complete your transfer:
+                    </p>
+                    
+                    <!-- OTP Box -->
+                    <div style="text-align: center; margin: 30px 0;">
+                      <div style="display: inline-block; background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); padding: 20px 40px; border-radius: 12px;">
+                        <span style="font-size: 36px; font-weight: 700; color: #ffffff; letter-spacing: 8px;">${data.otp}</span>
+                      </div>
+                    </div>
+                    
+                    <p style="margin: 20px 0; color: #dc2626; font-size: 14px; text-align: center;">
+                      ⏱️ This OTP will expire in <strong>${data.expiryMinutes} minutes</strong>.
+                    </p>
+                    
+                    <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                      <p style="margin: 0; color: #92400e; font-size: 14px;">
+                        <strong>⚠️ Security Notice:</strong> Never share this OTP with anyone. Our staff will never ask for your OTP.
+                      </p>
+                    </div>
+                    
+                    <p style="margin: 25px 0 0; color: #4b5563; font-size: 14px; line-height: 1.6;">
+                      If you did not initiate this transfer, please contact our support team immediately.
+                    </p>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+                    <p style="margin: 0 0 10px; color: #6b7280; font-size: 13px;">
+                      © ${new Date().getFullYear()} ${settings.siteName}. All rights reserved.
+                    </p>
+                    <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                      This is an automated message. Please do not reply to this email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: `[${settings.siteName}] Transfer Verification OTP - ${data.otp}`,
+      html,
+    });
+  }
 }
 
 export default EmailService;
