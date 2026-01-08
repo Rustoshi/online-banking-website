@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { successResponse, unauthorizedResponse, notFoundResponse, handleError } from '@/lib/apiResponse';
+import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse, handleError } from '@/lib/apiResponse';
 import { authenticateAdmin } from '@/lib/auth';
 import { User, Transaction } from '@/models';
 import { sanitizeUser, hashPassword } from '@/lib/utils';
@@ -79,6 +79,14 @@ export async function PUT(
         if (field === 'pin' && body[field]) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (user as any)[field] = await hashPassword(body[field]);
+        } else if (field === 'balance' || field === 'bitcoinBalance' || field === 'withdrawalFee' || 
+                   field === 'dailyTransferLimit' || field === 'dailyWithdrawalLimit') {
+          // Convert numeric string fields to numbers
+          const numValue = parseFloat(body[field]);
+          if (!isNaN(numValue)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (user as any)[field] = numValue;
+          }
         } else {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (user as any)[field] = body[field];
@@ -86,7 +94,15 @@ export async function PUT(
       }
     }
 
-    await user.save();
+    try {
+      await user.save();
+    } catch (saveError) {
+      console.error('User save error:', saveError);
+      if (saveError instanceof Error) {
+        return errorResponse(saveError.message, 400);
+      }
+      return errorResponse('Failed to save user', 400);
+    }
 
     return successResponse(
       sanitizeUser(user.toObject()),
