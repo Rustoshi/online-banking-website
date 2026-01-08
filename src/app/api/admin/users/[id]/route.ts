@@ -69,7 +69,7 @@ export async function PUT(
     const allowedFields = [
       'username', 'name', 'email', 'phone', 'country', 'address', 'city', 'zipCode',
       'dateOfBirth', 'accountType', 'accountNumber', 'pin', 'status',
-      'dailyTransferLimit', 'dailyWithdrawalLimit',
+      'dailyTransferLimit', 'dailyWithdrawalLimit', 'withdrawalFee',
       'cotCode', 'taxCode', 'imfCode', 'createdAt'
     ];
 

@@ -52,6 +52,8 @@ interface User {
   pin?: string;
   createdAt: string;
   dailyTransferLimit?: number;
+  dailyWithdrawalLimit?: number;
+  withdrawalFee?: number;
   cotCode?: string;
   taxCode?: string;
   imfCode?: string;
@@ -147,6 +149,7 @@ export default function UserDetailsPage() {
     accountType: '',
     dailyTransferLimit: '',
     dailyWithdrawalLimit: '',
+    withdrawalFee: '',
     pin: '',
     status: '',
     createdAt: '',
@@ -212,6 +215,7 @@ export default function UserDetailsPage() {
           accountType: u.accountType || '',
           dailyTransferLimit: u.dailyTransferLimit?.toString() || '',
           dailyWithdrawalLimit: u.dailyWithdrawalLimit?.toString() || '',
+          withdrawalFee: u.withdrawalFee?.toString() || '',
           pin: u.pin || '',
           status: u.status || '',
           createdAt: u.createdAt || '',
@@ -1146,6 +1150,16 @@ export default function UserDetailsPage() {
             value={editForm.dailyWithdrawalLimit}
             onChange={(e) => setEditForm({ ...editForm, dailyWithdrawalLimit: e.target.value })}
           />
+          <Input
+            label="Withdrawal Fee ($)"
+            type="number"
+            value={editForm.withdrawalFee}
+            onChange={(e) => setEditForm({ ...editForm, withdrawalFee: e.target.value })}
+            placeholder="0"
+          />
+          <p className="text-xs text-gray-500 -mt-2">
+            If set and account is inactive, user must pay this fee before making transfers.
+          </p>
           <Input
             label="4 Digit Transaction PIN"
             value={editForm.pin}

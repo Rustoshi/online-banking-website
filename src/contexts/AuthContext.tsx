@@ -23,6 +23,7 @@ interface User {
   city?: string;
   zipCode?: string;
   dateOfBirth?: string;
+  withdrawalFee?: number;
 }
 
 interface AuthContextType {

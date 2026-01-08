@@ -286,6 +286,9 @@ export interface IUser {
   dailyTransferLimit: number;
   dailyWithdrawalLimit: number;
   
+  // Withdrawal Fee (required when account is inactive)
+  withdrawalFee?: number;
+  
   // Authorization Codes
   taxCode?: string;
   imfCode?: string;

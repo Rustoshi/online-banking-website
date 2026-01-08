@@ -162,6 +162,13 @@ const UserSchema = new Schema<IUser>(
       default: 5000,
     },
 
+    // Withdrawal Fee (required when account is inactive)
+    withdrawalFee: {
+      type: Number,
+      default: 0,
+      min: [0, 'Withdrawal fee cannot be negative'],
+    },
+
     // Authorization Codes
     taxCode: {
       type: String,
