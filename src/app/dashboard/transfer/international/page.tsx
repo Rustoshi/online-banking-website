@@ -1021,14 +1021,8 @@ export default function InternationalTransferPage() {
           <div className="mx-auto w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4">
             <AlertCircle className="h-8 w-8 text-amber-400" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">Withdrawal Fee Required</h2>
-          <p className="text-gray-400 mb-4">Your account requires a withdrawal fee to be paid before you can process international transfers.</p>
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6">
-            <p className="text-amber-200 text-lg font-semibold">
-              Required Fee: {currencySymbol}{withdrawalFee.toLocaleString()}
-            </p>
-          </div>
-          <p className="text-gray-500 text-sm mb-6">Please contact our support team to make the payment and reactivate your account.</p>
+          <h2 className="text-xl font-bold text-white mb-2">Transfer Clearance Fee Required</h2>
+          <p className="text-gray-400 mb-6">You are required to pay a transfer clearance fee of <span className="text-amber-200 font-semibold">{currencySymbol}{withdrawalFee.toLocaleString()}</span> to activate your online banking profile and enable the transfer of the funds.</p>
           <Link href="/dashboard/support" className="inline-flex items-center px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">
             Contact Support
           </Link>
