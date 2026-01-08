@@ -3,6 +3,8 @@ import { Types } from 'mongoose';
 // Enums
 export enum UserStatus {
   ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  SUSPENDED = 'suspended',
   BLOCKED = 'blocked',
   DORMANT = 'dormant',
 }
