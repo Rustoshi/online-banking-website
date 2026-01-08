@@ -39,13 +39,13 @@ async function getSiteSettings(): Promise<{ siteName: string; siteEmail: string;
       settingsObj[s.key] = String(s.value);
     });
     return {
-      siteName: settingsObj.siteName || process.env.SITE_NAME || 'Online Banking',
+      siteName: settingsObj.siteName || process.env.SITE_NAME || '',
       siteEmail: settingsObj.siteEmail || process.env.EMAIL_FROM || 'support@example.com',
       siteUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     };
   } catch {
     return {
-      siteName: process.env.SITE_NAME || 'Online Banking',
+      siteName: process.env.SITE_NAME || '',
       siteEmail: process.env.EMAIL_FROM || 'support@example.com',
       siteUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     };

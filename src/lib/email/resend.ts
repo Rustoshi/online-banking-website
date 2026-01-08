@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Default sender configuration
 const DEFAULT_FROM_EMAIL = process.env.EMAIL_FROM || 'noreply@example.com';
-const DEFAULT_FROM_NAME = process.env.EMAIL_FROM_NAME || 'Online Banking';
+const DEFAULT_FROM_NAME = process.env.EMAIL_FROM_NAME || '';
 
 export interface SendEmailOptions {
   to: string | string[];

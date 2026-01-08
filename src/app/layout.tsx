@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CityPrime Bank - Build Your Financial Future",
+  title: "Online Banking - Build Your Financial Future",
   description: "Experience modern banking with competitive rates, innovative tools, and personalized service designed to help you achieve your financial goals.",
   keywords: ["banking", "online banking", "savings", "loans", "credit cards", "financial services"],
 };

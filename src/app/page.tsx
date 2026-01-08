@@ -74,7 +74,7 @@ const testimonials = [
   {
     name: 'Sarah Johnson',
     role: 'Small Business Owner',
-    content: 'CityPrime has been instrumental in helping my business grow. Their business banking solutions are top-notch!',
+    content: 'This bank has been instrumental in helping my business grow. Their business banking solutions are top-notch!',
     rating: 5,
   },
   {
