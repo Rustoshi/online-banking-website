@@ -146,7 +146,6 @@ export const internationalTransferSchema = z.object({
 
 export const verifyCodesSchema = z.object({
   transferId: objectIdSchema,
-  taxCode: z.string().optional(),
   imfCode: z.string().optional(),
   cotCode: z.string().optional(),
 });
@@ -243,7 +242,6 @@ export const deductUserSchema = z.object({
 });
 
 export const updateUserCodesSchema = z.object({
-  taxCode: z.string().optional(),
   imfCode: z.string().optional(),
   cotCode: z.string().optional(),
 });

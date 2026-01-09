@@ -679,7 +679,6 @@ export class TransactionService {
       totalAmount,
       status: requiresCodes ? TransferStatus.PENDING : TransferStatus.PROCESSING,
       description,
-      requiresTaxCode: requiresCodes && !!sender.taxCode,
       requiresImfCode: requiresCodes && !!sender.imfCode,
       requiresCotCode: requiresCodes && !!sender.cotCode,
       codesVerified: !requiresCodes,
@@ -724,7 +723,7 @@ export class TransactionService {
   static async verifyTransferCodes(
     transferId: string,
     userId: string,
-    codes: { taxCode?: string; imfCode?: string; cotCode?: string }
+    codes: { imfCode?: string; cotCode?: string }
   ): Promise<ITransfer> {
     const transfer = await Transfer.findById(transferId);
     if (!transfer) {
@@ -745,9 +744,6 @@ export class TransactionService {
     }
 
     // Verify codes
-    if (transfer.requiresTaxCode && codes.taxCode !== user.taxCode) {
-      throw new Error('Invalid TAX code');
-    }
     if (transfer.requiresImfCode && codes.imfCode !== user.imfCode) {
       throw new Error('Invalid IMF code');
     }

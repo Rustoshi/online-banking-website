@@ -400,7 +400,6 @@ export interface ITransfer {
   scheduledDate?: Date;
   
   // Verification codes required
-  requiresTaxCode: boolean;
   requiresImfCode: boolean;
   requiresCotCode: boolean;
   codesVerified: boolean;

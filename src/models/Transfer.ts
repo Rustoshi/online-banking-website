@@ -88,10 +88,6 @@ const TransferSchema = new Schema<ITransfer>(
     },
 
     // Verification codes required
-    requiresTaxCode: {
-      type: Boolean,
-      default: false,
-    },
     requiresImfCode: {
       type: Boolean,
       default: false,
@@ -182,7 +178,7 @@ TransferSchema.statics.getUserTransfers = function (
 
 // Instance method to check if codes are required
 TransferSchema.methods.requiresCodes = function (): boolean {
-  return this.requiresTaxCode || this.requiresImfCode || this.requiresCotCode;
+  return this.requiresImfCode || this.requiresCotCode;
 };
 
 // Prevent model recompilation in development
