@@ -281,25 +281,56 @@ export class TransactionService {
       throw new Error('User not found');
     }
 
+    // Check account status - must be active
+    if (user.status === UserStatus.DORMANT) {
+      throw new Error(
+        'Your account is currently dormant due to inactivity. To reactivate your account and process withdrawals, please contact our support team via live chat for immediate assistance.'
+      );
+    }
+
+    if (user.status === UserStatus.SUSPENDED) {
+      throw new Error(
+        'Your account has been temporarily suspended. Please contact our support team via live chat to resolve this matter and restore access to withdrawal services.'
+      );
+    }
+
+    if (user.status === UserStatus.BLOCKED) {
+      throw new Error(
+        'Your account access has been restricted. Please contact our support team via live chat for further assistance regarding your account status.'
+      );
+    }
+
+    if (user.status === UserStatus.INACTIVE) {
+      throw new Error(
+        'Your account is currently inactive. Please contact our support team via live chat to activate your account and enable withdrawal services.'
+      );
+    }
+
     // Check KYC status
     if (user.kycStatus !== KycStatus.APPROVED) {
-      throw new Error('KYC verification required for withdrawals');
+      throw new Error(
+        'Identity verification is required before processing withdrawals. Please complete your KYC verification in your account settings, or contact our support team via live chat for assistance.'
+      );
     }
 
     // Check balance
     if (user.balance < amount) {
-      throw new Error('Insufficient balance');
+      throw new Error(
+        'Insufficient funds. The requested withdrawal amount exceeds your available balance. Please adjust the amount and try again.'
+      );
     }
 
     const paymentMethod = await PaymentMethod.findById(paymentMethodId);
     if (!paymentMethod) {
-      throw new Error('Payment method not found');
+      throw new Error(
+        'The selected payment method is unavailable. Please choose a different withdrawal method or contact support for assistance.'
+      );
     }
 
     // Validate amount
     if (amount < paymentMethod.minAmount || amount > paymentMethod.maxAmount) {
       throw new Error(
-        `Amount must be between $${paymentMethod.minAmount} and $${paymentMethod.maxAmount}`
+        `Withdrawal amount must be between $${paymentMethod.minAmount.toLocaleString()} and $${paymentMethod.maxAmount.toLocaleString()}. Please adjust your amount accordingly.`
       );
     }
 

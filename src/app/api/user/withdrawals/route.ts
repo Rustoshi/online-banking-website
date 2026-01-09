@@ -74,7 +74,20 @@ export async function POST(request: NextRequest) {
       return handleZodError(error);
     }
     if (error instanceof Error) {
-      if (error.message.includes('Insufficient') || error.message.includes('KYC')) {
+      // Handle business logic errors with appropriate status codes
+      const businessErrors = [
+        'dormant',
+        'suspended',
+        'blocked',
+        'inactive',
+        'Insufficient',
+        'verification',
+        'KYC',
+        'payment method',
+        'amount must be',
+      ];
+      
+      if (businessErrors.some(keyword => error.message.toLowerCase().includes(keyword.toLowerCase()))) {
         return errorResponse(error.message, 400);
       }
     }

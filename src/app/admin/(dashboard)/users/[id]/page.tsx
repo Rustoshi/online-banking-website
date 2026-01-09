@@ -57,7 +57,6 @@ interface User {
   dailyWithdrawalLimit?: number;
   withdrawalFee?: number;
   cotCode?: string;
-  taxCode?: string;
   imfCode?: string;
   profilePhoto?: string;
 }
@@ -192,7 +191,6 @@ export default function UserDetailsPage() {
     balance: '',
     bitcoinBalance: '',
     cotCode: '',
-    taxCode: '',
     imfCode: '',
     accountType: '',
     dailyTransferLimit: '',
@@ -215,7 +213,6 @@ export default function UserDetailsPage() {
 
   const [bankingCodesForm, setBankingCodesForm] = useState({
     cotCode: '',
-    taxCode: '',
     imfCode: '',
   });
 
@@ -261,7 +258,6 @@ export default function UserDetailsPage() {
           balance: u.balance?.toString() || '0',
           bitcoinBalance: u.bitcoinBalance?.toString() || '0',
           cotCode: u.cotCode || '',
-          taxCode: u.taxCode || '',
           imfCode: u.imfCode || '',
           accountType: u.accountType || '',
           dailyTransferLimit: u.dailyTransferLimit?.toString() || '',
@@ -962,10 +958,6 @@ export default function UserDetailsPage() {
             <span className="md:col-span-2 font-mono font-medium">{user.cotCode || 'Not set'}</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 py-3">
-            <span className="text-[var(--text-muted)]">TAX Code</span>
-            <span className="md:col-span-2 font-mono font-medium">{user.taxCode || 'Not set'}</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 py-3">
             <span className="text-[var(--text-muted)]">IMF Code</span>
             <span className="md:col-span-2 font-mono font-medium">{user.imfCode || 'Not set'}</span>
           </div>
@@ -1226,11 +1218,6 @@ export default function UserDetailsPage() {
             onChange={(e) => setEditForm({ ...editForm, cotCode: e.target.value })}
           />
           <Input
-            label="TAX Code"
-            value={editForm.taxCode}
-            onChange={(e) => setEditForm({ ...editForm, taxCode: e.target.value })}
-          />
-          <Input
             label="IMF Code"
             value={editForm.imfCode}
             onChange={(e) => setEditForm({ ...editForm, imfCode: e.target.value })}
@@ -1427,11 +1414,6 @@ export default function UserDetailsPage() {
             label="COT Code"
             value={bankingCodesForm.cotCode}
             onChange={(e) => setBankingCodesForm({ ...bankingCodesForm, cotCode: e.target.value })}
-          />
-          <Input
-            label="TAX Code"
-            value={bankingCodesForm.taxCode}
-            onChange={(e) => setBankingCodesForm({ ...bankingCodesForm, taxCode: e.target.value })}
           />
           <Input
             label="IMF Code"
