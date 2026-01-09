@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: `${siteUrl}/logo.png`,
+        url: `${siteUrl}/logo.png?v=2`,
         width: 800,
         height: 800,
         alt: `${siteName} Logo`,
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteName} - Secure Online Banking`,
     description: siteDescription,
-    images: [`${siteUrl}/logo.png`],
+    images: [`${siteUrl}/logo.png?v=2`],
     creator: `@${siteName.replace(/\s+/g, '')}`,
   },
   
