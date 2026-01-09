@@ -17,7 +17,7 @@ const sizes = [
 ];
 
 async function generateFavicons() {
-  const logoPath = join(publicDir, 'logo.png');
+  const logoPath = join(publicDir, 'og-image.png');
   
   if (!existsSync(logoPath)) {
     console.error('Logo not found at:', logoPath);

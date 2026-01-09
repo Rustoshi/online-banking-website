@@ -58,7 +58,7 @@ export const metadata: Metadata = {
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
     other: [
-      { rel: "mask-icon", url: "/logo.png", color: "#0369a1" },
+      { rel: "mask-icon", url: "/og-image.png", color: "#0369a1" },
     ],
   },
   manifest: "/site.webmanifest",
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: `${siteUrl}/logo.png?v=2`,
+        url: `${siteUrl}/og-image.png`,
         width: 800,
         height: 800,
         alt: `${siteName} Logo`,
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteName} - Secure Online Banking`,
     description: siteDescription,
-    images: [`${siteUrl}/logo.png?v=2`],
+    images: [`${siteUrl}/og-image.png`],
     creator: `@${siteName.replace(/\s+/g, '')}`,
   },
   
@@ -160,8 +160,8 @@ export default function RootLayout({
               name: siteName,
               description: siteDescription,
               url: siteUrl,
-              logo: `${siteUrl}/logo.png`,
-              image: `${siteUrl}/logo.png`,
+              logo: `${siteUrl}/og-image.png`,
+              image: `${siteUrl}/og-image.png`,
               priceRange: "$$",
               address: {
                 "@type": "PostalAddress",
