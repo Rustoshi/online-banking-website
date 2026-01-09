@@ -59,6 +59,9 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
+    
+    console.log('[Update User] Received body:', JSON.stringify(body, null, 2));
+    console.log('[Update User] createdAt value:', body.createdAt);
 
     const user = await User.findById(id);
     if (!user) {
@@ -67,7 +70,7 @@ export async function PUT(
 
     // Update allowed fields (must match User model field names)
     const allowedFields = [
-      'username', 'name', 'email', 'phone', 'country', 'address', 'city', 'zipCode',
+      'username', 'name', 'email', 'phone', 'country', 'currency', 'address', 'city', 'zipCode',
       'dateOfBirth', 'accountType', 'accountNumber', 'balance', 'bitcoinBalance', 'pin', 'status',
       'dailyTransferLimit', 'dailyWithdrawalLimit', 'withdrawalFee',
       'cotCode', 'taxCode', 'imfCode', 'createdAt'
@@ -87,6 +90,9 @@ export async function PUT(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (user as any)[field] = numValue;
           }
+        } else if (field === 'createdAt') {
+          // createdAt is handled separately due to timestamps option
+          // Skip here, will update directly after save
         } else {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (user as any)[field] = body[field];
@@ -96,6 +102,20 @@ export async function PUT(
 
     try {
       await user.save();
+      
+      // Handle createdAt separately - use direct MongoDB collection update to bypass Mongoose timestamps
+      if (body.createdAt) {
+        const dateValue = new Date(body.createdAt);
+        console.log('[Update User] Attempting to update createdAt:', body.createdAt, '-> Date:', dateValue);
+        if (!isNaN(dateValue.getTime())) {
+          // Use the underlying MongoDB collection to bypass Mongoose middleware
+          const result = await User.collection.updateOne(
+            { _id: user._id },
+            { $set: { createdAt: dateValue } }
+          );
+          console.log('[Update User] MongoDB update result:', result);
+        }
+      }
     } catch (saveError) {
       console.error('User save error:', saveError);
       if (saveError instanceof Error) {
@@ -103,9 +123,12 @@ export async function PUT(
       }
       return errorResponse('Failed to save user', 400);
     }
+    
+    // Fetch updated user to return
+    const updatedUser = await User.findById(id);
 
     return successResponse(
-      sanitizeUser(user.toObject()),
+      sanitizeUser(updatedUser!.toObject()),
       'User updated successfully'
     );
   } catch (error) {

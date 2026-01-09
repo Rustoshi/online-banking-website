@@ -75,9 +75,19 @@ export async function POST(request: NextRequest) {
     
     // Map initialBalance to balance
     if (body.initialBalance !== undefined) {
-      body.balance = body.initialBalance;
+      body.balance = parseFloat(body.initialBalance) || 0;
       delete body.initialBalance;
     }
+    
+    // Map initialBitcoinBalance to bitcoinBalance
+    if (body.initialBitcoinBalance !== undefined) {
+      body.bitcoinBalance = parseFloat(body.initialBitcoinBalance) || 0;
+      delete body.initialBitcoinBalance;
+    }
+    
+    // Extract sendNotificationEmail before validation
+    const sendNotificationEmail = body.sendNotificationEmail || false;
+    const originalPassword = body.password; // Store for email
     
     const validatedData = createUserSchema.parse(body);
 
@@ -87,12 +97,47 @@ export async function POST(request: NextRequest) {
       return errorResponse('Email already registered', 409);
     }
 
-    // Create user
-    const user = await User.create({
+    // Generate random codes
+    const generateCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    // Prepare user data
+    const userData: Record<string, unknown> = {
       ...validatedData,
       email: validatedData.email.toLowerCase(),
       password: await hashPassword(validatedData.password),
-    });
+      // Auto-generate authorization codes
+      cotCode: generateCode(),
+      imfCode: generateCode(),
+      taxCode: generateCode(),
+    };
+    
+    // Hash PIN if provided
+    if (validatedData.pin && validatedData.pin.trim() !== '') {
+      userData.pin = await hashPassword(validatedData.pin);
+    }
+    
+    // Handle createdAt for backdating
+    if (validatedData.createdAt) {
+      userData.createdAt = new Date(validatedData.createdAt);
+    }
+    
+    // Remove sendNotificationEmail from userData as it's not a model field
+    delete userData.sendNotificationEmail;
+
+    // Create user
+    const user = await User.create(userData);
+    
+    // Send notification email if requested
+    if (sendNotificationEmail) {
+      try {
+        const { EmailService } = await import('@/services/emailService');
+        await EmailService.sendWelcomeEmailWithCredentials(user, originalPassword);
+        console.log('[Create User] Welcome email sent to:', user.email);
+      } catch (emailError) {
+        console.error('[Create User] Failed to send welcome email:', emailError);
+        // Don't fail the request if email fails
+      }
+    }
 
     return successResponse(
       sanitizeUser(user.toObject()),

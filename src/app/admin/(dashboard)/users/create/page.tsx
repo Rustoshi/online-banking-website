@@ -6,6 +6,76 @@ import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button, Input, Select, Card, CardHeader, CardTitle, CardDescription } from '@/components/ui';
 
+// Countries list
+const countries = [
+  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Argentina', 'Armenia', 'Australia',
+  'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium',
+  'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei',
+  'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde',
+  'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
+  'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
+  'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji',
+  'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada',
+  'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India',
+  'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan',
+  'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia',
+  'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives',
+  'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova',
+  'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal',
+  'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia',
+  'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru',
+  'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis',
+  'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe',
+  'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+  'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka',
+  'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand',
+  'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu',
+  'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
+  'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe',
+];
+
+// Currencies list
+const currencies = [
+  { code: 'USD', name: 'US Dollar', symbol: '$' },
+  { code: 'EUR', name: 'Euro', symbol: '€' },
+  { code: 'GBP', name: 'British Pound', symbol: '£' },
+  { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
+  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
+  { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
+  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF' },
+  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
+  { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$' },
+  { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$' },
+  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr' },
+  { code: 'KRW', name: 'South Korean Won', symbol: '₩' },
+  { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' },
+  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr' },
+  { code: 'MXN', name: 'Mexican Peso', symbol: '$' },
+  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
+  { code: 'RUB', name: 'Russian Ruble', symbol: '₽' },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
+  { code: 'TRY', name: 'Turkish Lira', symbol: '₺' },
+  { code: 'BRL', name: 'Brazilian Real', symbol: 'R$' },
+  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
+  { code: 'AED', name: 'UAE Dirham', symbol: 'د.إ' },
+  { code: 'SAR', name: 'Saudi Riyal', symbol: '﷼' },
+  { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM' },
+  { code: 'PHP', name: 'Philippine Peso', symbol: '₱' },
+  { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp' },
+  { code: 'THB', name: 'Thai Baht', symbol: '฿' },
+  { code: 'PKR', name: 'Pakistani Rupee', symbol: '₨' },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: '£' },
+  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
+  { code: 'GHS', name: 'Ghanaian Cedi', symbol: '₵' },
+  { code: 'BDT', name: 'Bangladeshi Taka', symbol: '৳' },
+  { code: 'VND', name: 'Vietnamese Dong', symbol: '₫' },
+  { code: 'PLN', name: 'Polish Zloty', symbol: 'zł' },
+  { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč' },
+  { code: 'ILS', name: 'Israeli Shekel', symbol: '₪' },
+  { code: 'QAR', name: 'Qatari Riyal', symbol: '﷼' },
+  { code: 'KWD', name: 'Kuwaiti Dinar', symbol: 'د.ك' },
+];
+
 export default function CreateUserPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -16,8 +86,15 @@ export default function CreateUserPage() {
     password: '',
     phone: '',
     country: '',
+    currency: 'USD',
     accountType: 'savings',
     initialBalance: '0',
+    initialBitcoinBalance: '0',
+    pin: '',
+    status: 'inactive',
+    withdrawalFee: '0',
+    createdAt: '',
+    sendNotificationEmail: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,6 +113,8 @@ export default function CreateUserPage() {
         body: JSON.stringify({
           ...formData,
           initialBalance: parseFloat(formData.initialBalance) || 0,
+          initialBitcoinBalance: parseFloat(formData.initialBitcoinBalance) || 0,
+          withdrawalFee: parseFloat(formData.withdrawalFee) || 0,
         }),
       });
 
@@ -116,13 +195,22 @@ export default function CreateUserPage() {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+1 234 567 8900"
                   />
-                  <Input
+                  <Select
                     label="Country"
+                    options={[
+                      { value: '', label: 'Select Country' },
+                      ...countries.map(c => ({ value: c, label: c }))
+                    ]}
                     value={formData.country}
                     onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    placeholder="United States"
                   />
                 </div>
+                <Select
+                  label="Currency"
+                  options={currencies.map(c => ({ value: c.code, label: `${c.code} - ${c.name} (${c.symbol})` }))}
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                />
               </div>
             </Card>
 
@@ -142,13 +230,62 @@ export default function CreateUserPage() {
                   value={formData.accountType}
                   onChange={(e) => setFormData({ ...formData, accountType: e.target.value })}
                 />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="Initial Balance ($)"
+                    type="number"
+                    value={formData.initialBalance}
+                    onChange={(e) => setFormData({ ...formData, initialBalance: e.target.value })}
+                    placeholder="0.00"
+                    hint="Starting USD balance"
+                  />
+                  <Input
+                    label="Bitcoin Balance (BTC)"
+                    type="number"
+                    value={formData.initialBitcoinBalance}
+                    onChange={(e) => setFormData({ ...formData, initialBitcoinBalance: e.target.value })}
+                    placeholder="0.00000000"
+                    hint="Starting BTC balance"
+                    step="0.00000001"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="4-Digit PIN"
+                    type="text"
+                    maxLength={4}
+                    value={formData.pin}
+                    onChange={(e) => setFormData({ ...formData, pin: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                    placeholder="1234"
+                    hint="Transaction PIN for the user"
+                  />
+                  <Input
+                    label="Withdrawal Fee ($)"
+                    type="number"
+                    value={formData.withdrawalFee}
+                    onChange={(e) => setFormData({ ...formData, withdrawalFee: e.target.value })}
+                    placeholder="0.00"
+                    hint="Fee required before transfers"
+                  />
+                </div>
+                <Select
+                  label="Account Status"
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                    { value: 'suspended', label: 'Suspended' },
+                    { value: 'blocked', label: 'Blocked' },
+                    { value: 'dormant', label: 'Dormant' },
+                  ]}
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                />
                 <Input
-                  label="Initial Balance ($)"
-                  type="number"
-                  value={formData.initialBalance}
-                  onChange={(e) => setFormData({ ...formData, initialBalance: e.target.value })}
-                  placeholder="0.00"
-                  hint="Starting balance for the account"
+                  label="Account Age / Date Created"
+                  type="datetime-local"
+                  value={formData.createdAt}
+                  onChange={(e) => setFormData({ ...formData, createdAt: e.target.value })}
+                  hint="Leave empty for current date, or set to backdate the account"
                 />
               </div>
             </Card>
@@ -182,12 +319,34 @@ export default function CreateUserPage() {
 
             <Card>
               <CardHeader>
+                <CardTitle>Email Notification</CardTitle>
+              </CardHeader>
+              <div className="mt-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.sendNotificationEmail}
+                    onChange={(e) => setFormData({ ...formData, sendNotificationEmail: e.target.checked })}
+                    className="w-5 h-5 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
+                  />
+                  <span className="text-sm text-[var(--text-primary)]">
+                    Send welcome email with login credentials
+                  </span>
+                </label>
+                <p className="mt-2 text-xs text-[var(--text-muted)]">
+                  User will receive an email with their account details and password
+                </p>
+              </div>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Notes</CardTitle>
               </CardHeader>
               <div className="mt-4 text-sm text-[var(--text-muted)] space-y-2">
-                <p>• User will receive an email with login credentials</p>
                 <p>• Account number will be auto-generated</p>
                 <p>• User can change password after first login</p>
+                <p>• Leave account age empty for current date</p>
               </div>
             </Card>
           </div>

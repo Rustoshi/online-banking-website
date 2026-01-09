@@ -19,7 +19,7 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    const { type, amount, scope, sender, receiverName, receiverBank, receiverAccount, description, date, notifyUser } = body;
+    const { type, amount, balanceType = 'cash', scope, sender, receiverName, receiverBank, receiverAccount, description, date, notifyUser } = body;
 
     if (!type || !amount || amount <= 0) {
       return errorResponse('Invalid type or amount', 400);
@@ -30,23 +30,35 @@ export async function POST(
       return notFoundResponse('User not found');
     }
 
+    // Determine which balance to use
+    const isCrypto = balanceType === 'crypto';
+    
     // Store balance before transaction
-    const balanceBefore = user.balance;
+    const balanceBefore = isCrypto ? (user.bitcoinBalance || 0) : user.balance;
 
-    // Update balance
+    // Update balance based on type
     if (type === 'credit') {
-      user.balance += amount;
-    } else if (type === 'debit') {
-      if (user.balance < amount) {
-        return errorResponse('Insufficient balance', 400);
+      if (isCrypto) {
+        user.bitcoinBalance = (user.bitcoinBalance || 0) + amount;
+      } else {
+        user.balance += amount;
       }
-      user.balance -= amount;
+    } else if (type === 'debit') {
+      const currentBalance = isCrypto ? (user.bitcoinBalance || 0) : user.balance;
+      if (currentBalance < amount) {
+        return errorResponse(`Insufficient ${isCrypto ? 'crypto' : 'cash'} balance`, 400);
+      }
+      if (isCrypto) {
+        user.bitcoinBalance = (user.bitcoinBalance || 0) - amount;
+      } else {
+        user.balance -= amount;
+      }
     } else {
       return errorResponse('Invalid transaction type', 400);
     }
 
     // Balance after transaction
-    const balanceAfter = user.balance;
+    const balanceAfter = isCrypto ? (user.bitcoinBalance || 0) : user.balance;
 
     await user.save();
 
@@ -58,10 +70,11 @@ export async function POST(
       balanceBefore,
       balanceAfter,
       status: TransactionStatus.COMPLETED,
-      description: description || `Admin ${type} - ${scope || 'Manual'}`,
+      description: description || `Admin ${type} - ${scope || 'Manual'}${isCrypto ? ' (BTC)' : ''}`,
       reference: `ADM${Date.now()}`,
       metadata: {
         scope,
+        balanceType,
         sender: sender || '',
         receiverName: receiverName || '',
         receiverBank: receiverBank || '',
@@ -72,11 +85,35 @@ export async function POST(
       createdAt: date ? new Date(date) : new Date(),
     });
 
-    // TODO: Send email notification if notifyUser is true
+    // Send email notification if notifyUser is true
+    if (notifyUser) {
+      try {
+        const { EmailService } = await import('@/services/emailService');
+        const transactionDescription = description || `Admin ${type} - ${scope || 'Manual'}${isCrypto ? ' (BTC)' : ''}`;
+        
+        if (type === 'credit') {
+          await EmailService.sendCreditAlertEmail(user, {
+            amount,
+            description: transactionDescription,
+            newBalance: balanceAfter,
+          });
+        } else {
+          await EmailService.sendDebitAlertEmail(user, {
+            amount,
+            description: transactionDescription,
+            newBalance: balanceAfter,
+          });
+        }
+        console.log(`[Topup] ${type} notification email sent to:`, user.email);
+      } catch (emailError) {
+        console.error(`[Topup] Failed to send ${type} notification email:`, emailError);
+        // Don't fail the request if email fails
+      }
+    }
 
     return successResponse(
       { 
-        newBalance: user.balance,
+        newBalance: isCrypto ? user.bitcoinBalance : user.balance,
         transaction: transaction.toObject(),
       },
       `Account ${type}ed successfully`

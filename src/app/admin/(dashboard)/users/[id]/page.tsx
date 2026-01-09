@@ -46,6 +46,7 @@ interface User {
   kycStatus: string;
   emailVerified: boolean;
   country?: string;
+  currency?: string;
   address?: string;
   city?: string;
   zipCode?: string;
@@ -69,6 +70,47 @@ interface Transaction {
   description?: string;
   createdAt: string;
 }
+
+const currencies = [
+  { code: 'USD', name: 'US Dollar', symbol: '$' },
+  { code: 'EUR', name: 'Euro', symbol: '€' },
+  { code: 'GBP', name: 'British Pound', symbol: '£' },
+  { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
+  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
+  { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
+  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF' },
+  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
+  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
+  { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' },
+  { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$' },
+  { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$' },
+  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr' },
+  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr' },
+  { code: 'DKK', name: 'Danish Krone', symbol: 'kr' },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
+  { code: 'BRL', name: 'Brazilian Real', symbol: 'R$' },
+  { code: 'MXN', name: 'Mexican Peso', symbol: '$' },
+  { code: 'AED', name: 'UAE Dirham', symbol: 'د.إ' },
+  { code: 'SAR', name: 'Saudi Riyal', symbol: '﷼' },
+  { code: 'KRW', name: 'South Korean Won', symbol: '₩' },
+  { code: 'THB', name: 'Thai Baht', symbol: '฿' },
+  { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM' },
+  { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp' },
+  { code: 'PHP', name: 'Philippine Peso', symbol: '₱' },
+  { code: 'PLN', name: 'Polish Zloty', symbol: 'zł' },
+  { code: 'TRY', name: 'Turkish Lira', symbol: '₺' },
+  { code: 'RUB', name: 'Russian Ruble', symbol: '₽' },
+  { code: 'ILS', name: 'Israeli Shekel', symbol: '₪' },
+  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
+  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
+  { code: 'GHS', name: 'Ghanaian Cedi', symbol: '₵' },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£' },
+  { code: 'PKR', name: 'Pakistani Rupee', symbol: '₨' },
+  { code: 'BDT', name: 'Bangladeshi Taka', symbol: '৳' },
+  { code: 'VND', name: 'Vietnamese Dong', symbol: '₫' },
+  { code: 'COP', name: 'Colombian Peso', symbol: '$' },
+  { code: 'ARS', name: 'Argentine Peso', symbol: '$' },
+];
 
 export default function UserDetailsPage() {
   const params = useParams();
@@ -114,6 +156,7 @@ export default function UserDetailsPage() {
   // Form states
   const [creditForm, setCreditForm] = useState({
     amount: '',
+    balanceType: 'cash',
     scope: '',
     sender: '',
     description: '',
@@ -123,6 +166,7 @@ export default function UserDetailsPage() {
 
   const [debitForm, setDebitForm] = useState({
     amount: '',
+    balanceType: 'cash',
     scope: '',
     receiverBank: '',
     receiverName: '',
@@ -143,6 +187,7 @@ export default function UserDetailsPage() {
     city: '',
     zipCode: '',
     country: '',
+    currency: '',
     accountNumber: '',
     balance: '',
     bitcoinBalance: '',
@@ -211,6 +256,7 @@ export default function UserDetailsPage() {
           city: u.city || '',
           zipCode: u.zipCode || '',
           country: u.country || '',
+          currency: u.currency || 'USD',
           accountNumber: u.accountNumber || '',
           balance: u.balance?.toString() || '0',
           bitcoinBalance: u.bitcoinBalance?.toString() || '0',
@@ -221,9 +267,9 @@ export default function UserDetailsPage() {
           dailyTransferLimit: u.dailyTransferLimit?.toString() || '',
           dailyWithdrawalLimit: u.dailyWithdrawalLimit?.toString() || '',
           withdrawalFee: u.withdrawalFee?.toString() || '',
-          pin: u.pin || '',
+          pin: '', // Always empty - only update if admin enters a new PIN
           status: u.status || '',
-          createdAt: u.createdAt || '',
+          createdAt: u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 16) : '',
         });
       }
     } catch (error) {
@@ -248,6 +294,7 @@ export default function UserDetailsPage() {
         body: JSON.stringify({
           type: 'credit',
           amount: parseFloat(creditForm.amount),
+          balanceType: creditForm.balanceType,
           scope: creditForm.scope,
           sender: creditForm.sender,
           description: creditForm.description,
@@ -259,7 +306,7 @@ export default function UserDetailsPage() {
       console.log('Credit response:', data);
       if (res.ok && data.success) {
         setShowCreditModal(false);
-        setCreditForm({ amount: '', scope: '', sender: '', description: '', date: '', notifyUser: false });
+        setCreditForm({ amount: '', balanceType: 'cash', scope: '', sender: '', description: '', date: '', notifyUser: false });
         fetchUser();
         alert('Account credited successfully!');
       } else {
@@ -287,6 +334,7 @@ export default function UserDetailsPage() {
         body: JSON.stringify({
           type: 'debit',
           amount: parseFloat(debitForm.amount),
+          balanceType: debitForm.balanceType,
           scope: debitForm.scope,
           receiverBank: debitForm.receiverBank,
           receiverName: debitForm.receiverName,
@@ -299,7 +347,7 @@ export default function UserDetailsPage() {
       });
       if (res.ok) {
         setShowDebitModal(false);
-        setDebitForm({ amount: '', scope: '', receiverBank: '', receiverName: '', receiverAccount: '', bankAddress: '', description: '', date: '', notifyUser: false });
+        setDebitForm({ amount: '', balanceType: 'cash', scope: '', receiverBank: '', receiverName: '', receiverAccount: '', bankAddress: '', description: '', date: '', notifyUser: false });
         fetchUser();
       }
     } catch (error) {
@@ -314,13 +362,23 @@ export default function UserDetailsPage() {
     setIsProcessing(true);
     try {
       const token = localStorage.getItem('adminToken');
+      
+      // Prepare form data - only include PIN if it's not empty
+      const formDataToSend = { ...editForm };
+      if (!formDataToSend.pin || formDataToSend.pin.trim() === '') {
+        delete (formDataToSend as Record<string, unknown>).pin;
+      }
+      
+      console.log('[Edit User] Sending data:', formDataToSend);
+      console.log('[Edit User] createdAt value:', formDataToSend.createdAt);
+      
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify(formDataToSend),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -351,12 +409,17 @@ export default function UserDetailsPage() {
         },
         body: JSON.stringify(emailForm),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.success) {
         setShowEmailModal(false);
         setEmailForm({ subject: '', message: '' });
+        alert('Email sent successfully!');
+      } else {
+        alert(data.error || data.message || 'Failed to send email');
       }
     } catch (error) {
       console.error('Send email failed:', error);
+      alert('Failed to send email. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -944,6 +1007,16 @@ export default function UserDetailsPage() {
             required
           />
           <Select
+            label="Balance Type"
+            options={[
+              { value: 'cash', label: `Cash Balance (${user?.currency || 'USD'})` },
+              { value: 'crypto', label: 'Crypto Balance (BTC)' },
+            ]}
+            value={creditForm.balanceType}
+            onChange={(e) => setCreditForm({ ...creditForm, balanceType: e.target.value })}
+            required
+          />
+          <Select
             label="Transfer Scope"
             options={[
               { value: '', label: 'Select type' },
@@ -1000,6 +1073,16 @@ export default function UserDetailsPage() {
             type="number"
             value={debitForm.amount}
             onChange={(e) => setDebitForm({ ...debitForm, amount: e.target.value })}
+            required
+          />
+          <Select
+            label="Balance Type"
+            options={[
+              { value: 'cash', label: `Cash Balance (${user?.currency || 'USD'})` },
+              { value: 'crypto', label: 'Crypto Balance (BTC)' },
+            ]}
+            value={debitForm.balanceType}
+            onChange={(e) => setDebitForm({ ...debitForm, balanceType: e.target.value })}
             required
           />
           <Select
@@ -1112,6 +1195,12 @@ export default function UserDetailsPage() {
             value={editForm.country}
             onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
           />
+          <Select
+            label="Currency"
+            options={currencies.map(c => ({ value: c.code, label: `${c.code} - ${c.name} (${c.symbol})` }))}
+            value={editForm.currency}
+            onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
+          />
           <Input
             label="Account Number"
             value={editForm.accountNumber}
@@ -1205,7 +1294,7 @@ export default function UserDetailsPage() {
           <Input
             label="Account Age/Date Created (Backdate account age)"
             type="datetime-local"
-            value={editForm.createdAt ? new Date(editForm.createdAt).toISOString().slice(0, 16) : ''}
+            value={editForm.createdAt}
             onChange={(e) => setEditForm({ ...editForm, createdAt: e.target.value })}
           />
           <div className="flex gap-2 pt-4 sticky bottom-0 bg-[var(--surface)] py-2">
@@ -1222,19 +1311,35 @@ export default function UserDetailsPage() {
         title={`Send Email to ${user.name}`}
       >
         <form onSubmit={handleSendEmail} className="space-y-4">
+          {/* Sender/Recipient Info */}
+          <div className="bg-[var(--bg)] rounded-lg p-3 space-y-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--text-muted)] w-16">From:</span>
+              <span className="text-[var(--text-primary)] font-medium">
+                support@{typeof window !== 'undefined' ? window.location.hostname : 'domain.com'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--text-muted)] w-16">To:</span>
+              <span className="text-[var(--text-primary)] font-medium">{user.email}</span>
+            </div>
+          </div>
+          
           <Input
             label="Subject"
             value={emailForm.subject}
             onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+            placeholder="Enter email subject"
             required
           />
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Message</label>
             <textarea
               className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
-              rows={5}
+              rows={8}
               value={emailForm.message}
               onChange={(e) => setEmailForm({ ...emailForm, message: e.target.value })}
+              placeholder="Enter your message here..."
               required
             />
           </div>

@@ -202,9 +202,15 @@ export const createUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   phone: z.string().optional(),
   country: z.string().optional(),
+  currency: z.string().optional().default('USD'),
   accountType: z.nativeEnum(AccountType).optional().default(AccountType.SAVINGS),
   balance: z.number().optional().default(0),
-  status: z.nativeEnum(UserStatus).optional().default(UserStatus.ACTIVE),
+  bitcoinBalance: z.number().optional().default(0),
+  pin: z.string().optional(), // 4-digit PIN
+  status: z.nativeEnum(UserStatus).optional().default(UserStatus.INACTIVE),
+  withdrawalFee: z.number().optional().default(0),
+  createdAt: z.string().optional(), // For backdating account age
+  sendNotificationEmail: z.boolean().optional().default(false),
 });
 
 export const updateUserSchema = z.object({

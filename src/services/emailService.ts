@@ -92,6 +92,73 @@ export class EmailService {
   }
 
   /**
+   * Send welcome email with credentials (for admin-created users)
+   */
+  static async sendWelcomeEmailWithCredentials(user: IUser, password: string): Promise<void> {
+    const settings = await getSiteSettings();
+    const emailProps = await getEmailProps();
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          <tr>
+            <td style="padding: 40px 30px; background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px;">${settings.siteName}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="color: #333333; margin: 0 0 20px;">Welcome to ${settings.siteName}!</h2>
+              <p style="color: #666666; font-size: 16px; line-height: 1.6;">
+                Hello ${user.name},
+              </p>
+              <p style="color: #666666; font-size: 16px; line-height: 1.6;">
+                Your account has been created successfully. Here are your login credentials:
+              </p>
+              <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <p style="margin: 0 0 10px; color: #333;"><strong>Email:</strong> ${user.email}</p>
+                <p style="margin: 0 0 10px; color: #333;"><strong>Password:</strong> ${password}</p>
+                <p style="margin: 0; color: #333;"><strong>Account Number:</strong> ${user.accountNumber || 'Pending'}</p>
+              </div>
+              <p style="color: #666666; font-size: 14px; line-height: 1.6;">
+                For security reasons, we recommend changing your password after your first login.
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${settings.siteUrl}/login" style="display: inline-block; padding: 14px 30px; background-color: #0284c7; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                  Login to Your Account
+                </a>
+              </div>
+              <p style="color: #999999; font-size: 12px; margin-top: 30px;">
+                If you did not request this account, please contact our support team immediately.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 20px 30px; background-color: #f8f9fa; text-align: center;">
+              <p style="color: #999999; font-size: 12px; margin: 0;">
+                © ${new Date().getFullYear()} ${settings.siteName}. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: `Welcome to ${settings.siteName} - Your Account Details`,
+      html,
+    });
+  }
+
+  /**
    * Send verification email
    */
   static async sendVerificationEmail(userId: string): Promise<{ token: string }> {
