@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 // Load environment variables
-const MONGODB_URI = 'mongodb+srv://root:%40Newpass12@cluster0.sznor6a.mongodb.net/primecrest';
+const MONGODB_URI = 'mongodb+srv://root:%40Newpass12@cluster0.sznor6a.mongodb.net/oakweltrust';
 
 // Admin Schema (must match src/models/Admin.ts)
 const AdminSchema = new mongoose.Schema({
