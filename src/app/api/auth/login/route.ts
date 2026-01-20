@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       if (error.message.includes('Invalid email or password')) {
         return errorResponse(error.message, 401);
       }
-      if (error.message.includes('blocked') || error.message.includes('restricted')) {
+      if (error.message.includes('blocked') || error.message.includes('suspended')) {
         return errorResponse(error.message, 403);
       }
     }

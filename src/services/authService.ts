@@ -121,11 +121,16 @@ export class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    // Check status - only block truly blocked accounts from login
-    // Dormant, inactive, and suspended accounts can still login but have restricted functionality
+    // Check status - block suspended and blocked accounts from login
+    // Dormant, inactive, and active accounts can still login
+    if (user.status === UserStatus.SUSPENDED) {
+      throw new Error(
+        'Your account has been suspended. Please contact our support team for assistance.'
+      );
+    }
     if (user.status === UserStatus.BLOCKED) {
       throw new Error(
-        'Your account access has been restricted. Please contact our support team via live chat for assistance.'
+        'Your account has been blocked. Please contact our support team for assistance.'
       );
     }
 

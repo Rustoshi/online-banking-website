@@ -33,9 +33,9 @@ export async function getUserFromToken(token: string): Promise<IUser | null> {
   await connectDB();
   const user = await User.findById(payload.id);
   
-  // Block only users with blocked or dormant status
-  // Allow active, inactive, and suspended users to access their account
-  if (!user || user.status === UserStatus.BLOCKED || user.status === UserStatus.DORMANT) {
+  // Block suspended and blocked users from accessing the API
+  // Allow active, inactive, and dormant users to access their account
+  if (!user || user.status === UserStatus.BLOCKED || user.status === UserStatus.SUSPENDED) {
     return null;
   }
 
