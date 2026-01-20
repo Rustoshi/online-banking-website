@@ -42,6 +42,7 @@ export async function getUserFromToken(token: string): Promise<IUser | null> {
   return user;
 }
 
+
 /**
  * Verify and get admin from token
  */
