@@ -372,8 +372,22 @@ export default function DashboardPage() {
 
               <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-green-400" />
-                  <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-300">Active</span>
+                  <span className={`h-2 w-2 rounded-full ${
+                    user?.status === 'active' ? 'bg-green-400' :
+                    user?.status === 'inactive' ? 'bg-yellow-400' :
+                    user?.status === 'dormant' ? 'bg-orange-400' :
+                    user?.status === 'suspended' ? 'bg-red-400' :
+                    user?.status === 'blocked' ? 'bg-red-500' : 'bg-gray-400'
+                  }`} />
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    user?.status === 'active' ? 'bg-green-500/20 text-green-300' :
+                    user?.status === 'inactive' ? 'bg-yellow-500/20 text-yellow-300' :
+                    user?.status === 'dormant' ? 'bg-orange-500/20 text-orange-300' :
+                    user?.status === 'suspended' ? 'bg-red-500/20 text-red-300' :
+                    user?.status === 'blocked' ? 'bg-red-600/20 text-red-400' : 'bg-gray-500/20 text-gray-300'
+                  }`}>
+                    {user?.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Active'}
+                  </span>
                 </div>
                 <p className="text-xs text-white/60">
                   Last updated: {new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit' })}, {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
