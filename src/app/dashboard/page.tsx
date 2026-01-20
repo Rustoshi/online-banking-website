@@ -645,8 +645,22 @@ export default function DashboardPage() {
                   <p className="font-semibold text-white text-lg">{user?.name || 'User'}</p>
                   <div className="flex items-center gap-2 mt-3">
                     <span className="inline-flex items-center text-xs">
-                      <span className="h-2 w-2 rounded-full bg-green-400 mr-1.5" />
-                      <span className="text-green-300">Account Active</span>
+                      <span className={`h-2 w-2 rounded-full mr-1.5 ${
+                        user?.status === 'active' ? 'bg-green-400' :
+                        user?.status === 'inactive' ? 'bg-yellow-400' :
+                        user?.status === 'dormant' ? 'bg-orange-400' :
+                        user?.status === 'suspended' ? 'bg-red-400' :
+                        user?.status === 'blocked' ? 'bg-red-500' : 'bg-gray-400'
+                      }`} />
+                      <span className={`${
+                        user?.status === 'active' ? 'text-green-300' :
+                        user?.status === 'inactive' ? 'text-yellow-300' :
+                        user?.status === 'dormant' ? 'text-orange-300' :
+                        user?.status === 'suspended' ? 'text-red-300' :
+                        user?.status === 'blocked' ? 'text-red-400' : 'text-gray-300'
+                      }`}>
+                        Account {user?.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Active'}
+                      </span>
                     </span>
                   </div>
                   {user?.kycStatus !== 'approved' && (
