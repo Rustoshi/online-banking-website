@@ -1,2 +1,2 @@
 export { default as SendMoneyModal } from './SendMoneyModal';
-export { default as AccountInfoModal } from './AccountInfoModal';
+export { default as SwapModal } from './SwapModal';

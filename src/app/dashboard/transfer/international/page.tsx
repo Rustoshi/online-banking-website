@@ -28,7 +28,6 @@ import {
   X,
   Loader2,
   MoreHorizontal,
-  Bitcoin,
   KeyRound,
   Mail,
   AlertCircle,
@@ -38,7 +37,6 @@ type VerificationStep = 'form' | 'imf' | 'cot' | 'otp' | 'complete';
 
 type TransferMethod = 
   | 'wire'
-  | 'crypto'
   | 'paypal'
   | 'wise'
   | 'cashapp'
@@ -57,7 +55,6 @@ interface TransferMethodOption {
 
 const transferMethods: TransferMethodOption[] = [
   { id: 'wire', name: 'Wire Transfer', description: 'Transfer funds directly to international bank accounts.', icon: '🏦', color: 'bg-blue-500/20' },
-  { id: 'crypto', name: 'Cryptocurrency', description: 'Send funds to your cryptocurrency wallet.', icon: '₿', color: 'bg-orange-500/20' },
   { id: 'paypal', name: 'PayPal', description: 'Transfer funds to your PayPal account.', icon: '💳', color: 'bg-indigo-500/20' },
   { id: 'wise', name: 'Wise Transfer', description: 'Transfer with lower fees using Wise.', icon: '🌐', color: 'bg-green-500/20' },
   { id: 'cashapp', name: 'Cash App', description: 'Quick transfers to your Cash App account.', icon: '💵', color: 'bg-emerald-500/20' },
@@ -69,20 +66,6 @@ const moreTransferMethods: TransferMethodOption[] = [
   { id: 'revolut', name: 'Revolut', description: 'Transfer to your Revolut account with low fees.', icon: '🔄', color: 'bg-pink-500/20' },
 ];
 
-const cryptoCurrencies = [
-  { value: 'BTC', label: 'Bitcoin (BTC)' },
-  { value: 'ETH', label: 'Ethereum (ETH)' },
-  { value: 'USDT', label: 'Tether (USDT)' },
-  { value: 'USDC', label: 'USD Coin (USDC)' },
-  { value: 'LTC', label: 'Litecoin (LTC)' },
-];
-
-const cryptoNetworks = [
-  { value: 'native', label: 'Native Network' },
-  { value: 'erc20', label: 'ERC-20 (Ethereum)' },
-  { value: 'trc20', label: 'TRC-20 (Tron)' },
-  { value: 'bep20', label: 'BEP-20 (BSC)' },
-];
 
 export default function InternationalTransferPage() {
   const router = useRouter();
@@ -117,10 +100,6 @@ export default function InternationalTransferPage() {
   const [iban, setIban] = useState('');
   const [accountType, setAccountType] = useState('savings');
 
-  // Crypto fields
-  const [cryptoCurrency, setCryptoCurrency] = useState('BTC');
-  const [cryptoNetwork, setCryptoNetwork] = useState('native');
-  const [walletAddress, setWalletAddress] = useState('');
 
   // PayPal fields
   const [paypalEmail, setPaypalEmail] = useState('');
@@ -167,7 +146,6 @@ export default function InternationalTransferPage() {
   const getMethodTitle = () => {
     switch (selectedMethod) {
       case 'wire': return 'International Wire Transfer';
-      case 'crypto': return 'Cryptocurrency Withdrawal';
       case 'paypal': return 'PayPal Withdrawal';
       case 'wise': return 'Wise Transfer';
       case 'cashapp': return 'Cash App Withdrawal';
@@ -181,7 +159,6 @@ export default function InternationalTransferPage() {
   const getMethodDescription = () => {
     switch (selectedMethod) {
       case 'wire': return 'Funds will reflect in the Beneficiary Account within 72 hours.';
-      case 'crypto': return 'Withdrawals are typically processed within 1-3 hours.';
       case 'paypal': return 'Funds will be sent to your PayPal account within 24 hours.';
       case 'wise': return 'Your funds will be processed within 1-2 business days.';
       case 'cashapp': return 'Withdrawals to Cash App are typically processed within 24 hours.';
@@ -215,12 +192,6 @@ export default function InternationalTransferPage() {
       case 'wire':
         if (!accountName || !accountNumber || !bankName || !country || !swiftCode) {
           toast.error('Please fill in all required wire transfer fields');
-          return false;
-        }
-        break;
-      case 'crypto':
-        if (!walletAddress) {
-          toast.error('Please enter your wallet address');
           return false;
         }
         break;
@@ -325,7 +296,7 @@ export default function InternationalTransferPage() {
       // Store transfer data for later submission after all codes verified
       const transferData = {
         type: 'international',
-        accountNumber: selectedMethod === 'wire' ? accountNumber : walletAddress || paypalEmail || wiseEmail || cashAppTag || zelleEmail || venmoUsername || revolutEmail,
+        accountNumber: selectedMethod === 'wire' ? accountNumber : paypalEmail || wiseEmail || cashAppTag || zelleEmail || venmoUsername || revolutEmail,
         accountName: selectedMethod === 'wire' ? accountName : wiseFullName || cashAppFullName || zelleName || revolutFullName || 'N/A',
         bankName: selectedMethod === 'wire' ? bankName : selectedMethod.toUpperCase(),
         country: selectedMethod === 'wire' ? country : wiseCountry || 'International',
@@ -580,51 +551,6 @@ export default function InternationalTransferPage() {
           </div>
         );
 
-      case 'crypto':
-        return (
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-white mb-1" style={{color: "white"}}>Cryptocurrency *</label>
-                <select
-                  value={cryptoCurrency}
-                  onChange={(e) => setCryptoCurrency(e.target.value)}
-                  className="block w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                >
-                  {cryptoCurrencies.map(c => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white mb-1" style={{color: "white"}}>Network *</label>
-                <select
-                  value={cryptoNetwork}
-                  onChange={(e) => setCryptoNetwork(e.target.value)}
-                  className="block w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                >
-                  {cryptoNetworks.map(n => (
-                    <option key={n.value} value={n.value}>{n.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white mb-1" style={{color: "white"}}>Wallet Address *</label>
-              <div className="relative">
-                <Bitcoin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  placeholder="Enter your wallet address"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-        );
 
       case 'paypal':
         return (

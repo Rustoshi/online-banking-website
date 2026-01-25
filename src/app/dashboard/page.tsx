@@ -24,6 +24,7 @@ import {
   Inbox,
   Clock,
   ArrowDown,
+  ArrowUpDown,
   MoreHorizontal,
   Bitcoin,
   Bell,
@@ -31,7 +32,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { SendMoneyModal, AccountInfoModal } from '@/components/dashboard/modals';
+import { SendMoneyModal } from '@/components/dashboard/modals';
 import { getUserCurrencySymbol } from '@/lib/currency';
 
 interface Transaction {
@@ -60,7 +61,7 @@ interface QuickAction {
 }
 
 const quickActions: QuickAction[] = [
-  { name: 'Account Info', icon: Building2, color: 'gray', action: 'account-info' },
+  { name: 'Swap', icon: ArrowUpDown, color: 'gray', href: '/dashboard/swap' },
   { name: 'Send Money', icon: Send, color: 'cyan', action: 'send-money' },
   { name: 'Deposit', icon: Plus, color: 'green', href: '/dashboard/deposit' },
   { name: 'History', icon: History, color: 'purple', href: '/dashboard/transactions' },
@@ -90,7 +91,6 @@ export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState('');
   const [currentDate, setCurrentDate] = useState('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [showAccountModal, setShowAccountModal] = useState(false);
   const [showSendMoneyModal, setShowSendMoneyModal] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     balance: 0,
@@ -236,34 +236,50 @@ export default function DashboardPage() {
   const userCurrency = user?.currency || 'USD';
   const currencySymbol = getUserCurrencySymbol(userCurrency);
 
-  // Fetch BTC price from CoinGecko API
+  // Fetch live BTC price from CoinGecko in user's currency
   useEffect(() => {
     const fetchBtcPrice = async () => {
+      const currencyCode = userCurrency.toLowerCase();
       try {
-        // Use user's currency for BTC price conversion
-        const currencyCode = userCurrency.toLowerCase();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const response = await fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${currencyCode}`
+          `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${currencyCode}&include_24hr_change=true`,
+          {
+            headers: { 'Accept': 'application/json' },
+            signal: controller.signal,
+          }
         );
+        
+        clearTimeout(timeoutId);
         
         if (response.ok) {
           const data = await response.json();
-          const price = data.bitcoin?.[currencyCode];
-          if (price) {
+          if (data.bitcoin?.[currencyCode]) {
+            const price = data.bitcoin[currencyCode];
+            const change = data.bitcoin[`${currencyCode}_24h_change`] || 0;
             setBtcPrice(price);
+            // Update shared cache for other pages
+            localStorage.setItem('btc_price_cache', JSON.stringify({ price, change, currency: userCurrency }));
+            localStorage.setItem('btc_price_timestamp', Date.now().toString());
           }
         }
-      } catch (error) {
-        console.error('Failed to fetch BTC price:', error);
+      } catch {
+        // Use cached price as fallback if fetch fails
+        const cachedPrice = localStorage.getItem('btc_price_cache');
+        if (cachedPrice) {
+          const cached = JSON.parse(cachedPrice);
+          setBtcPrice(cached.price);
+        }
       } finally {
         setBtcLoading(false);
       }
     };
 
-    fetchBtcPrice();
-    // Refresh BTC price every 60 seconds
-    const interval = setInterval(fetchBtcPrice, 60000);
-    return () => clearInterval(interval);
+    if (userCurrency) {
+      fetchBtcPrice();
+    }
   }, [userCurrency]);
 
   const formatBtc = (amount: number) => {
@@ -471,12 +487,12 @@ export default function DashboardPage() {
             </div>
             <span className="text-xs text-gray-300">History</span>
           </Link>
-          <button onClick={() => setShowAccountModal(true)} className="flex flex-col items-center">
+          <Link href="/dashboard/swap" className="flex flex-col items-center">
             <div className="h-14 w-14 rounded-full bg-gray-700 flex items-center justify-center mb-2">
-              <Building2 className="h-6 w-6 text-white" />
+              <ArrowUpDown className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xs text-gray-300">Account</span>
-          </button>
+            <span className="text-xs text-gray-300">Swap</span>
+          </Link>
         </div>
 
         {/* Mobile Quick Transfer Links */}
@@ -738,12 +754,12 @@ export default function DashboardPage() {
                   >
                     <Send className="h-4 w-4 mr-2" /> Send Money
                   </button>
-                  <button
-                    onClick={() => setShowAccountModal(true)}
+                  <Link
+                    href="/dashboard/swap"
                     className="inline-flex items-center justify-center px-5 py-2.5 bg-white text-gray-800 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <Plus className="h-4 w-4 mr-2" /> Add Money
-                  </button>
+                    <ArrowUpDown className="h-4 w-4 mr-2" /> Swap
+                  </Link>
                 </div>
               </div>
             </div>
@@ -761,9 +777,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {quickActions.map((action) => {
                 const handleClick = () => {
-                  if (action.action === 'account-info') {
-                    setShowAccountModal(true);
-                  } else if (action.action === 'send-money') {
+                  if (action.action === 'send-money') {
                     setShowSendMoneyModal(true);
                   }
                 };
@@ -1038,10 +1052,6 @@ export default function DashboardPage() {
       </div>
 
       {/* Modals */}
-      <AccountInfoModal
-        isOpen={showAccountModal}
-        onClose={() => setShowAccountModal(false)}
-      />
       <SendMoneyModal
         isOpen={showSendMoneyModal}
         onClose={() => setShowSendMoneyModal(false)}

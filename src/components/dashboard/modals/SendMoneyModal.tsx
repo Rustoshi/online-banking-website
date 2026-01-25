@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { X, Send, User, Globe, ChevronRight } from 'lucide-react';
+import { X, Send, User, Globe, Bitcoin, ChevronRight } from 'lucide-react';
 
 interface SendMoneyModalProps {
   isOpen: boolean;
@@ -68,6 +68,31 @@ export default function SendMoneyModal({ isOpen, onClose }: SendMoneyModalProps)
                 </div>
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center group-hover:bg-cyan-100 transition-colors">
                   <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-cyan-600 transition-colors" />
+                </div>
+              </div>
+            </Link>
+
+            {/* Bitcoin Transfer */}
+            <Link
+              href="/dashboard/transfer/bitcoin"
+              onClick={onClose}
+              className="block group"
+            >
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors border border-gray-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 mr-4">
+                    <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                      <Bitcoin className="h-5 w-5 text-orange-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium" style={{ color: '#111827' }}>Bitcoin Transfer</h4>
+                    <p className="text-sm" style={{ color: '#4B5563' }}>Send Bitcoin instantly worldwide</p>
+                    <p className="text-xs" style={{ color: '#6B7280' }}>Low fees, fast confirmation</p>
+                  </div>
+                </div>
+                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                  <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-orange-600 transition-colors" />
                 </div>
               </div>
             </Link>
